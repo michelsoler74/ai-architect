@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 
 export const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
+    apiKey: process.env.GROQ_API_KEY || 'MISSING_GROQ_API_KEY'
 });
 
 // Helper function to call Groq models quickly
