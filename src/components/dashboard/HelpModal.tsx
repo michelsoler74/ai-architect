@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { HelpCircle, X, ShieldAlert, Target, Zap, TrendingDown } from 'lucide-react';
+import { HelpCircle, X, ShieldAlert, Target, Zap, TrendingDown, User } from 'lucide-react';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -81,6 +81,17 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </p>
             <p className="text-sm leading-relaxed relative z-10 text-red-200/80 mt-2">
               Al usar esta opción para revelar la explicación de la IA y obtener una pista, el sistema automáticamente <strong>restará 50 puntos de XP</strong> de tu puntaje Global en el Ranking como penalización. ¡Usa este botón de ayuda sabiamente o perderás tu ventaja competitiva!
+            </p>
+          </section>
+
+          {/* Section 5: Perfil y Personalización */}
+          <section className="space-y-3 bg-slate-800/30 p-4 border border-slate-700/50 rounded-xl relative overflow-hidden">
+            <h3 className="flex items-center gap-2 text-purple-400 font-bold uppercase tracking-wider text-sm relative z-10"><User size={18} /> Personaliza tu Avatar</h3>
+            <p className="text-sm leading-relaxed relative z-10 text-slate-300">
+              Para destacar en el <strong>Salón del Arquitecto</strong> y que tus amigos o compañeros te reconozcan, puedes cambiar tu nombre de usuario en cualquier momento. 
+            </p>
+            <p className="text-sm leading-relaxed relative z-10 text-slate-300 mt-2">
+              Haz clic sobre el <strong>botón con tu icono de usuario</strong> (arriba a la derecha, al lado del botón Guía) para abrir la pantalla de edición, donde podrás asignar o actualizar tu alias de Arquitecto.
             </p>
           </section>
 
