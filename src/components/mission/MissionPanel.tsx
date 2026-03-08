@@ -54,6 +54,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
   const [results, setResults] = useState<ModelResponse[]>([]);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explaining, setExplaining] = useState(false);
+  const [loadingText, setLoadingText] = useState('Iniciando simulación...');
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -106,6 +107,20 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
     setError(null);
     setExplanation(null);
   }, [activeNodeId, user]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+       const phrases = ['Iniciando simulación...', 'Llamando modelos...', 'Analizando respuestas...', 'Evaluando sintaxis...', 'Casi listo...'];
+       let i = 0;
+       setLoadingText(phrases[0]);
+       interval = setInterval(() => {
+          i = (i + 1) % phrases.length;
+          setLoadingText(phrases[i]);
+       }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
   
   const handleEvaluate = async () => {
     if (!prompt.trim()) return;
@@ -348,7 +363,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
                 }`}
               >
                 {loading ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                {loading ? 'Sincronizando...' : 'Ejecutar Simulación'}
+                {loading ? loadingText : 'Ejecutar Simulación'}
               </button>
             </div>
          </div>

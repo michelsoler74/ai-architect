@@ -43,10 +43,8 @@ export async function POST(req: Request) {
     
     const results = await compareModels(fullPrompt, models);
 
-    // 3. Evaluate results using Groq (LLM-as-a-judge)
-    for (let result of results) {
-       // Evaluate using LLaMA3 on Groq
-       // Evaluate using LLaMA3 on Groq
+    // 3. Evaluate results using Groq (LLM-as-a-judge) IN PARALLEL
+    await Promise.all(results.map(async (result) => {
        const evaluationPrompt = challengeId === 'node-2'
          ? `
           Eres un auditor de seguridad IA.
@@ -158,7 +156,7 @@ export async function POST(req: Request) {
            result.score = 0;
            (result as any).isSuccess = false;
        }
-    }
+    }));
 
     return NextResponse.json({ success: true, results });
 
