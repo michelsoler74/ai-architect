@@ -93,6 +93,37 @@ export default function UserProfileModal({ isOpen, onClose, userId, currentUsern
             {loading ? <span className="animate-spin w-5 h-5 border-2 border-white/20 border-t-white rounded-full block"/> : <><Save size={18} /> Guardar Cambios</>}
           </button>
         </div>
+
+        {/* Zona de Peligro: Reinicio */}
+        <div className="p-6 border-t border-slate-800 bg-red-950/20 mt-2 flex flex-col items-center text-center">
+            <h3 className="text-red-500 font-bold uppercase tracking-widest text-xs mb-2">Zona de Peligro</h3>
+            <p className="text-[10px] text-red-300/80 mb-4 px-2">
+              Si quieres mejorar tus tiempos o tu puntuación en el Ranking desde cero, puedes borrar tu progreso. 
+              <strong> Esto eliminará todo tu XP y bloqueará de nuevo el Mapa.</strong>
+            </p>
+            <button 
+              onClick={async () => {
+                if(window.confirm("¿Estás 100% seguro de que quieres borrar todo tu progreso y volver al Nivel 1? Esta acción NO se puede deshacer.")) {
+                  setLoading(true);
+                  try {
+                    await fetch('/api/reset-progress', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId })
+                    });
+                    window.location.reload(); // Recargar la página limpia todo el estado
+                  } catch (e) {
+                    setError("Error al borrar el progreso.");
+                    setLoading(false);
+                  }
+                }
+              }}
+              disabled={loading}
+              className="text-red-400 hover:text-white hover:bg-red-600 border border-red-900/50 hover:border-red-500 px-4 py-2 font-bold uppercase text-[10px] rounded-lg transition-colors w-full"
+            >
+              Borrar mi Progreso y Reiniciar
+            </button>
+        </div>
       </div>
     </div>
   );
