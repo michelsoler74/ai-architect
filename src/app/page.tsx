@@ -4,14 +4,16 @@ import React, { useState, useEffect } from 'react';
 import MissionPanel from "@/components/mission/MissionPanel";
 import SkillTree from "@/components/dashboard/SkillTree";
 import { supabase } from '@/lib/supabase';
-import { LayoutGrid, Map, User, Trophy, BarChart3 } from 'lucide-react';
+import { LayoutGrid, Map, User, Trophy, BarChart3, HelpCircle } from 'lucide-react';
 import Leaderboard from '@/components/dashboard/Leaderboard';
+import HelpModal from '@/components/dashboard/HelpModal';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'map' | 'mission' | 'ranking'>('map');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [completedNodes, setCompletedNodes] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,7 +55,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-200 relative overflow-hidden">
       {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+        {/* Imagen de fondo sutil */}
+        <div className="absolute inset-0 bg-[url('/bg-michel.jpg')] bg-cover bg-center bg-fixed opacity-15 mix-blend-screen" />
+        <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[1px]" />
+
+        {/* Luces decorativas */}
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-emerald-500/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
       </div>
@@ -114,6 +121,13 @@ export default function Home() {
                  Entrar
                </a>
              )}
+             <button
+               onClick={() => setIsHelpOpen(true)}
+               className="bg-slate-800/50 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition-all flex items-center gap-2"
+               title="Guía y Reglas del Juego"
+             >
+               <HelpCircle size={16} /> <span className="hidden sm:inline">Guía</span>
+             </button>
           </div>
         </header>
 
@@ -143,6 +157,8 @@ export default function Home() {
         <footer className="mt-12 text-center text-slate-600">
           <p className="text-[10px] font-bold uppercase tracking-[0.3em]">Code & Prompt by Antigravity Agent</p>
         </footer>
+
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       </div>
     </main>
   );

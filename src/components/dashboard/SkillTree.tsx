@@ -204,9 +204,9 @@ function NodeCard({ node, onClick, isLocked = false, isCompleted = false }: {
         {node.description}
       </p>
 
-      {!isLocked && status !== 'COMPLETED' && (
-        <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase text-cyan-500 tracking-tighter opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-          Iniciar Misión <ChevronRight size={12} />
+      {!isLocked && (
+        <div className={`mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0 ${status === 'COMPLETED' ? 'text-emerald-500' : 'text-cyan-500'}`}>
+          {status === 'COMPLETED' ? 'Subir de Nivel' : 'Iniciar Misión'} <ChevronRight size={12} />
         </div>
       )}
     </div>

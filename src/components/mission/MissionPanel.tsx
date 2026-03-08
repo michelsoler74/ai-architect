@@ -52,6 +52,8 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<ModelResponse[]>([]);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explaining, setExplaining] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
     setResults([]);
     setSaveSuccess(false);
     setError(null);
+    setExplanation(null);
   }, [activeNodeId, user]);
   
   const handleEvaluate = async () => {
@@ -110,6 +113,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
     setLoading(true);
     setError(null);
     setResults([]);
+    setExplanation(null);
     
     try {
       const response = await fetch('/api/evaluate', {
@@ -167,6 +171,51 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
       setSaving(false);
     }
   };
+
+  const handleExplainMistake = async () => {
+    if (!user) {
+      setError("Debes iniciar sesión para pedir pistas (cuestan XP).");
+      return;
+    }
+    
+    setExplaining(true);
+    setError(null);
+    
+    const bestResult = results.reduce((prev: any, current: any) => 
+      (current.score > prev.score) ? current : prev
+    , results[0]);
+
+    try {
+      const response = await fetch('/api/explain-mistake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt, 
+          result: bestResult, 
+          challengeId: mission.id,
+          dynamicChallenge: dynamicMission,
+          userId: user.id
+        })
+      });
+      const data = await response.json();
+      
+      if (!response.ok || data.error) {
+        setError(data.error || 'Error al pedir explicación.');
+      } else {
+        setExplanation(data.explanation);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error de red.');
+    } finally {
+      setExplaining(false);
+    }
+  };
+
+  const bestResult = results.length > 0 ? results.reduce((prev: any, current: any) => 
+    (current.score > prev.score) ? current : prev
+  , results[0]) : null;
+
+  const hasFailed = bestResult && (!bestResult.isSuccess || bestResult.score < 50);
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 py-4 animate-in fade-in duration-500">
@@ -310,22 +359,59 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
          <div className="space-y-6 animate-in zoom-in-95 duration-500">
            <ModelComparisonPanel userPrompt={prompt} responses={results} />
            
-           <div className="flex justify-end">
-             <button 
-                onClick={handleSaveProgress}
-                disabled={saving || saveSuccess}
-                className={`font-black text-xs uppercase tracking-widest py-4 px-12 rounded-xl transition-all flex items-center gap-3 shadow-2xl ${
-                  saveSuccess 
-                    ? 'bg-blue-600/20 text-blue-400 cursor-not-allowed border border-blue-500/50' 
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-emerald-500/40 active:scale-95'
-                }`}
-              >
-                {saving ? <Loader2 className="animate-spin" size={18} /> : 
-                 saveSuccess ? <CheckCircle size={18} /> : <FileJson size={18} />}
-                {saving ? 'Transfiriendo Datos...' : 
-                 saveSuccess ? 'Registro de Misión Completado' : 'Guardar y Finalizar'}
-              </button>
+           <div className="flex justify-between items-center mt-6">
+             {hasFailed ? (
+               <div className="flex gap-4">
+                 <button 
+                    onClick={() => { setResults([]); setExplanation(null); }}
+                    className="font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-xl transition-all border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 active:scale-95 flex items-center gap-2"
+                  >
+                    🔄 Reintentar
+                 </button>
+                 {!explanation && (
+                   <button 
+                      onClick={handleExplainMistake}
+                      disabled={explaining}
+                      className="font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-xl transition-all border border-red-900/50 bg-red-900/20 text-red-400 hover:bg-red-900/40 active:scale-95 flex items-center gap-2"
+                    >
+                      {explaining ? <Loader2 className="animate-spin" size={16} /> : <AlertTriangle size={16} />}
+                      ¿En qué me equivoqué? (-50 XP)
+                   </button>
+                 )}
+               </div>
+             ) : (
+               <div />
+             )}
+             
+             {!hasFailed && (
+               <button 
+                  onClick={handleSaveProgress}
+                  disabled={saving || saveSuccess}
+                  className={`font-black text-xs uppercase tracking-widest py-4 px-12 rounded-xl transition-all flex items-center gap-3 shadow-2xl ${
+                    saveSuccess 
+                      ? 'bg-blue-600/20 text-blue-400 cursor-not-allowed border border-blue-500/50' 
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-emerald-500/40 active:scale-95'
+                  }`}
+                >
+                  {saving ? <Loader2 className="animate-spin" size={18} /> : 
+                   saveSuccess ? <CheckCircle size={18} /> : <FileJson size={18} />}
+                  {saving ? 'Transfiriendo Datos...' : 
+                   saveSuccess ? 'Registro de Misión Completado' : 'Guardar y Finalizar'}
+                </button>
+             )}
            </div>
+
+           {explanation && (
+             <div className="mt-4 p-6 bg-red-950/20 border border-red-500/30 rounded-xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+               <div className="flex items-center gap-3 mb-4">
+                 <ShieldAlert className="text-red-400" size={24} />
+                 <h3 className="text-red-400 font-bold uppercase tracking-widest text-sm">Consejo del Arquitecto</h3>
+               </div>
+               <p className="text-red-200/80 text-sm whitespace-pre-wrap leading-relaxed relative z-10">
+                 {explanation}
+               </p>
+             </div>
+           )}
          </div>
       )}
     </div>

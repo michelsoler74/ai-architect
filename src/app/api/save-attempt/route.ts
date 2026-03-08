@@ -45,9 +45,9 @@ export async function POST(req: Request) {
       const highestDiffKey = `highest_difficulty_${nodeField}`;
 
       // 1. Obtenemos datos actuales del perfil
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('total_xp')
+        .select('*')
         .eq('id', userId)
         .single();
       
@@ -55,10 +55,20 @@ export async function POST(req: Request) {
         await supabase
           .from('profiles')
           .update({ 
-            total_xp: profile.total_xp + xpGained,
-            [highestDiffKey]: difficulty // Podríamos poner un Math.max aquí si quisiéramos
+            total_xp: (profile.total_xp || 0) + xpGained
+            // Removimos [highestDiffKey] por si no existía la columna
           })
           .eq('id', userId);
+      } else {
+        // Creamos su perfil si no existe
+        const username = `Arquitecto-${userId.substring(0, 6).toUpperCase()}`;
+        await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            username,
+            total_xp: xpGained
+          });
       }
     }
 
