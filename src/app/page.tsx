@@ -12,6 +12,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'map' | 'mission' | 'ranking'>('map');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [completedNodes, setCompletedNodes] = useState<string[]>([]);
+  const [nodeLevels, setNodeLevels] = useState<Record<string, number>>({});
   const [user, setUser] = useState<any>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -37,13 +38,20 @@ export default function Home() {
       .eq('user_id', userId);
 
     if (data && data.length > 0) {
-      // Extraemos los IDs únicos de desafíos completados
-      const idsCompeticion = data
-        .map(log => log.challenge_id)
-        .filter(id => id !== null);
+      // Extraemos los IDs únicos y contamos su frecuencia
+      const counts: Record<string, number> = {};
+      const idsCompeticion: string[] = [];
+      
+      data.forEach(log => {
+        if (log.challenge_id) {
+          idsCompeticion.push(log.challenge_id);
+          counts[log.challenge_id] = (counts[log.challenge_id] || 0) + 1;
+        }
+      });
       
       const uniqueIds = Array.from(new Set(idsCompeticion));
       setCompletedNodes(uniqueIds);
+      setNodeLevels(counts);
     }
   };
 
@@ -133,7 +141,7 @@ export default function Home() {
 
         <div className="min-h-[60vh] animate-in fade-in duration-700">
           {activeTab === 'map' ? (
-            <SkillTree onSelectNode={handleSelectNode} completedNodes={completedNodes} />
+            <SkillTree onSelectNode={handleSelectNode} completedNodes={completedNodes} nodeLevels={nodeLevels} />
           ) : activeTab === 'ranking' ? (
             <Leaderboard />
           ) : (

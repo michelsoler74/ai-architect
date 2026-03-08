@@ -66,9 +66,10 @@ const INITIAL_NODES: SkillNode[] = [
 interface SkillTreeProps {
   onSelectNode: (nodeId: string) => void;
   completedNodes: string[];
+  nodeLevels?: Record<string, number>;
 }
 
-export default function SkillTree({ onSelectNode, completedNodes }: SkillTreeProps) {
+export default function SkillTree({ onSelectNode, completedNodes, nodeLevels = {} }: SkillTreeProps) {
   return (
     <div className="relative w-full py-12 px-4 select-none">
       {/* Background Grid Aesthetic */}
@@ -85,6 +86,7 @@ export default function SkillTree({ onSelectNode, completedNodes }: SkillTreePro
                 key={node.id} 
                 node={node} 
                 isCompleted={completedNodes.includes(node.id)}
+                levelCount={nodeLevels[node.id] || 0}
                 onClick={() => onSelectNode(node.id)} 
               />
             ))}
@@ -108,6 +110,7 @@ export default function SkillTree({ onSelectNode, completedNodes }: SkillTreePro
                   node={node} 
                   isLocked={!completedNodes.includes('node-1')}
                   isCompleted={completedNodes.includes(node.id)}
+                  levelCount={nodeLevels[node.id] || 0}
                   onClick={() => onSelectNode(node.id)} 
                 />
                 
@@ -130,6 +133,7 @@ export default function SkillTree({ onSelectNode, completedNodes }: SkillTreePro
                     node={node} 
                     isLocked={!completedNodes.includes('node-2') && !completedNodes.includes('node-3')}
                     isCompleted={completedNodes.includes(node.id)}
+                    levelCount={nodeLevels[node.id] || 0}
                     onClick={() => onSelectNode(node.id)} 
                  />
                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-[100px] h-20 pointer-events-none">
@@ -150,6 +154,7 @@ export default function SkillTree({ onSelectNode, completedNodes }: SkillTreePro
                 node={node} 
                 isLocked={!completedNodes.includes('node-5') && !completedNodes.includes('node-6')}
                 isCompleted={completedNodes.includes(node.id)}
+                levelCount={nodeLevels[node.id] || 0}
                 onClick={() => onSelectNode(node.id)} 
               />
             ))}
@@ -161,13 +166,15 @@ export default function SkillTree({ onSelectNode, completedNodes }: SkillTreePro
   );
 }
 
-function NodeCard({ node, onClick, isLocked = false, isCompleted = false }: { 
+function NodeCard({ node, onClick, isLocked = false, isCompleted = false, levelCount = 0 }: { 
     node: SkillNode, 
     onClick: () => void, 
     isLocked?: boolean,
-    isCompleted?: boolean 
+    isCompleted?: boolean,
+    levelCount?: number
 }) {
   const status = isCompleted ? 'COMPLETED' : isLocked ? 'LOCKED' : 'UNLOCKED';
+  const displayDifficulty = levelCount + 1;
 
   return (
     <div 
@@ -189,10 +196,15 @@ function NodeCard({ node, onClick, isLocked = false, isCompleted = false }: {
            status === 'LOCKED' ? <Lock size={24} /> : <Play size={24} />}
         </div>
         {status === 'COMPLETED' && (
-          <div className="flex gap-1 text-emerald-500">
-             <Star size={12} fill="currentColor" />
-             <Star size={12} fill="currentColor" />
-             <Star size={12} fill="currentColor" />
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex gap-1 text-emerald-500">
+               <Star size={12} fill="currentColor" />
+               <Star size={12} fill="currentColor" />
+               <Star size={12} fill="currentColor" />
+            </div>
+            <div className="text-[9px] font-black tracking-widest uppercase bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
+              Dificultad: {displayDifficulty}
+            </div>
           </div>
         )}
       </div>
