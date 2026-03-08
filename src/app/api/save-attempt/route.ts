@@ -52,23 +52,27 @@ export async function POST(req: Request) {
         .single();
       
       if (profile) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
             total_xp: (profile.total_xp || 0) + xpGained
-            // Removimos [highestDiffKey] por si no existía la columna
           })
           .eq('id', userId);
+        
+        if (updateError) console.error("Error updating profile:", updateError);
+
       } else {
         // Creamos su perfil si no existe
         const username = `Arquitecto-${userId.substring(0, 6).toUpperCase()}`;
-        await supabase
+        const { error: insertError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
             username,
             total_xp: xpGained
           });
+          
+        if (insertError) console.error("Error inserting profile:", insertError);
       }
     }
 
