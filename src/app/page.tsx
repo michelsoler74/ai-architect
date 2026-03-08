@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { LayoutGrid, Map, User, Trophy, BarChart3, HelpCircle } from 'lucide-react';
 import Leaderboard from '@/components/dashboard/Leaderboard';
 import HelpModal from '@/components/dashboard/HelpModal';
+import UserProfileModal from '@/components/dashboard/UserProfileModal';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'map' | 'mission' | 'ranking'>('map');
@@ -14,17 +15,30 @@ export default function Home() {
   const [completedNodes, setCompletedNodes] = useState<string[]>([]);
   const [nodeLevels, setNodeLevels] = useState<Record<string, number>>({});
   const [user, setUser] = useState<any>(null);
+  const [profileData, setProfileData] = useState<any>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('username').eq('id', userId).single();
+    if (data) setProfileData(data);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProgress(session.user.id);
+      if (session?.user) {
+        fetchProgress(session.user.id);
+        fetchProfile(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProgress(session.user.id);
+      if (session?.user) {
+        fetchProgress(session.user.id);
+        fetchProfile(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -115,15 +129,19 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
              {user ? (
-               <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
-                 <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500">
+               <button
+                 onClick={() => setIsProfileOpen(true)}
+                 title="Editar perfil"
+                 className="flex items-center gap-3 bg-slate-900 border border-slate-800 hover:border-emerald-500/30 hover:bg-slate-800 transition-all px-4 py-2 rounded-xl group"
+               >
+                 <div className="w-8 h-8 bg-emerald-500/20 group-hover:bg-emerald-500/30 transition-colors rounded-full flex items-center justify-center text-emerald-500">
                    <User size={18} />
                  </div>
-                 <div className="hidden sm:block">
+                 <div className="hidden sm:block text-left">
                    <p className="text-[10px] font-black uppercase text-slate-500 tracking-tighter">Arquitecto</p>
-                   <p className="text-[10px] font-bold text-white max-w-[100px] truncate">{user.email}</p>
+                   <p className="text-[10px] font-bold text-white max-w-[100px] truncate">{profileData?.username || user.email}</p>
                  </div>
-               </div>
+               </button>
              ) : (
                <a href="/login" className="bg-white text-slate-950 px-6 py-2 rounded-lg font-black text-xs uppercase transition-transform active:scale-95">
                  Entrar
@@ -167,6 +185,15 @@ export default function Home() {
         </footer>
 
         <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+        {user && (
+          <UserProfileModal 
+            isOpen={isProfileOpen} 
+            onClose={() => setIsProfileOpen(false)} 
+            userId={user.id} 
+            currentUsername={profileData?.username || ''}
+            onUpdate={(newUsername) => setProfileData({ ...profileData, username: newUsername })}
+          />
+        )}
       </div>
     </main>
   );
