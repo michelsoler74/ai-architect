@@ -69,7 +69,10 @@ export default function Home() {
 
           <nav className="flex bg-slate-900/50 backdrop-blur-md p-1 rounded-xl border border-slate-800">
             <button 
-              onClick={() => setActiveTab('map')}
+              onClick={() => {
+                setActiveTab('map');
+                if (user) fetchProgress(user.id);
+              }}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === 'map' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
               }`}
@@ -124,7 +127,10 @@ export default function Home() {
               <MissionPanel activeNodeId={selectedNode || 'node-1'} />
               <div className="mt-8 flex justify-center">
                  <button 
-                  onClick={() => setActiveTab('map')}
+                  onClick={() => {
+                    setActiveTab('map');
+                    if (user) fetchProgress(user.id);
+                  }}
                   className="text-slate-500 hover:text-white text-sm font-bold flex items-center gap-2"
                  >
                    Regresar al Mapa de Habilidades
