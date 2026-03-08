@@ -82,11 +82,11 @@ export async function generateChallenge(nodeId: string, difficulty: number = 1):
 
     return {
       id: nodeId,
-      title: data.title || "Misión Generada",
-      description: data.description || "Descripción de la misión.",
-      rules: data.rules || ["No usar palabras prohibidas típicas."],
-      inputData: data.inputData || "Datos de prueba.",
-      successCriteria: data.successCriteria || "Éxito basado en precisión.",
+      title: typeof data.title === 'string' ? data.title : JSON.stringify(data.title || "Misión Generada"),
+      description: typeof data.description === 'string' ? data.description : JSON.stringify(data.description || "Descripción de la misión."),
+      rules: Array.isArray(data.rules) ? data.rules.map(String) : [String(data.rules || "No usar palabras prohibidas típicas.")],
+      inputData: typeof data.inputData === 'string' ? data.inputData : JSON.stringify(data.inputData || "Datos de prueba."),
+      successCriteria: typeof data.successCriteria === 'string' ? data.successCriteria : JSON.stringify(data.successCriteria || "Éxito basado en precisión."),
       topic: nodeId
     };
   } catch (error) {
