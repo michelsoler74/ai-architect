@@ -16,9 +16,10 @@ export interface ModelResponse {
 interface ComparisonPanelProps {
   userPrompt: string;
   responses: ModelResponse[];
+  architectObservation?: string | null;
 }
 
-export default function ModelComparisonPanel({ userPrompt, responses }: ComparisonPanelProps) {
+export default function ModelComparisonPanel({ userPrompt, responses, architectObservation }: ComparisonPanelProps) {
   if (!responses || responses.length === 0) return null;
 
   return (
@@ -91,7 +92,7 @@ export default function ModelComparisonPanel({ userPrompt, responses }: Comparis
         <div>
           <h4 className="font-bold text-blue-400 text-sm">💡 Observación del Arquitecto ("Sage")</h4>
           <p className="text-sm text-blue-200/80 mt-1 leading-relaxed">
-            Revisa cómo modelos diferentes interpretan el mismo prompt. Al depender de LLMs menos parametrizados o sin un fine-tuning severo, tu prompt debe ser extremadamente preciso, directo y sin ambigüedades.
+            {architectObservation || "Revisa cómo modelos diferentes interpretan el mismo prompt. Al depender de LLMs menos parametrizados o sin un fine-tuning severo, tu prompt debe ser extremadamente preciso, directo y sin ambigüedades."}
           </p>
         </div>
       </div>

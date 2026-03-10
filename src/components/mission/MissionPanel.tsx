@@ -52,6 +52,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<ModelResponse[]>([]);
+  const [architectObservation, setArchitectObservation] = useState<string | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explaining, setExplaining] = useState(false);
   const [loadingText, setLoadingText] = useState('Iniciando simulación...');
@@ -128,6 +129,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
     setLoading(true);
     setError(null);
     setResults([]);
+    setArchitectObservation(null);
     setExplanation(null);
     
     try {
@@ -147,6 +149,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
         setError(data.error || 'Ocurrió un error en la evaluación.');
       } else {
         setResults(data.results || []);
+        setArchitectObservation(data.architectObservation || null);
         setSaveSuccess(false);
       }
     } catch (err: any) {
@@ -338,6 +341,26 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
            <h2 className="text-lg font-black text-white tracking-tight italic">Terminal de Prompting_</h2>
            <span className="text-[10px] font-mono text-slate-600">INPUT_BUFFER: {prompt.length} CHRS</span>
          </div>
+         
+         {((mission as any).hint || currentLevel <= 3) && (
+           <div className="mb-4 p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-xl relative overflow-hidden animate-in fade-in flex flex-col gap-2">
+             <div className="flex items-center gap-2">
+               <span className="text-cyan-400">💡</span>
+               <h3 className="text-cyan-400 font-bold uppercase tracking-widest text-[10px]">{(mission as any).hint ? 'Análisis del Arquitecto' : `Pista de Entrenamiento (${currentLevel}/3)`}</h3>
+             </div>
+             <p className="text-cyan-200/80 text-xs leading-relaxed">
+               {(mission as any).hint ? (
+                 (mission as any).hint
+               ) : (
+                 <>
+                   <strong>Sugerencia de formato:</strong> Usa siempre un System Prompt (instrucción de sistema) para dar un rol y reglas claras.<br/>
+                   <span className="text-cyan-500/60 mt-1 block">Ejemplo: <i>"Actúa como un filtro de seguridad. Si el usuario hace X, tú debes responder Y evitando Z."</i></span>
+                 </>
+               )}
+             </p>
+           </div>
+         )}
+
          <textarea 
             className="w-full h-48 bg-slate-950 border border-slate-800 rounded-xl p-5 font-mono text-sm text-emerald-500/90 focus:outline-none focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/5 transition-all resize-none shadow-inner"
             placeholder={mission.id === 'node-2' ? "Escribe las instrucciones de seguridad para el LLM..." : "Redacta tu prompt de extracción aquí..."}
@@ -372,7 +395,7 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
       {/* Resultados */}
       {results.length > 0 && (
          <div className="space-y-6 animate-in zoom-in-95 duration-500">
-           <ModelComparisonPanel userPrompt={prompt} responses={results} />
+           <ModelComparisonPanel userPrompt={prompt} responses={results} architectObservation={architectObservation} />
            
            <div className="flex justify-between items-center mt-6">
              {hasFailed ? (

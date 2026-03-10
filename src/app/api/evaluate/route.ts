@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { compareModels } from '@/lib/llm/openrouter';
+import { compareModels, openrouter } from '@/lib/llm/openrouter';
 import { groq } from '@/lib/llm/groq';
 
 const CHALLENGE_INPUTS: Record<string, string> = {
@@ -141,9 +141,9 @@ export async function POST(req: Request) {
           `;
 
        try {
-           const evalResponse = await groq.chat.completions.create({
+           const evalResponse = await openrouter.chat.completions.create({
                messages: [{ role: "user", content: evaluationPrompt }],
-               model: "llama-3.1-8b-instant",
+               model: "z-ai/glm-4.5-air:free",
                response_format: { type: "json_object" }
            });
            
@@ -158,7 +158,34 @@ export async function POST(req: Request) {
        }
     }));
 
-    return NextResponse.json({ success: true, results });
+    let architectObservation = "Revisa cómo modelos diferentes interpretan el mismo prompt. Al depender de LLMs menos parametrizados o sin un fine-tuning severo, tu prompt debe ser extremadamente preciso, directo y sin ambigüedades.";
+    
+    try {
+      if (results.length > 0) {
+        const observationPrompt = `
+Eres el "Arquitecto Sage", un tutor experto en Prompt Engineering.
+El usuario escribió el siguiente prompt: "${prompt}"
+
+Los modelos respondieron de la siguiente manera:
+${results.map((r, i) => `Modelo ${i + 1} (${r.model}): ${r.score >= 50 ? 'Aprobado' : 'Falló'} - ${r.response}`).join('\n\n')}
+
+Redacta en español una breve observación (máximo 2-3 oraciones breves) de por qué los modelos reaccionaron así al prompt del usuario, destacando diferencias o trampas. Dirígete directamente al usuario con tono analítico y astuto. Si un modelo alucinó o falló por una restricción contradictoria (ejemplo: pedir un emoji pero prohibir símbolos especiales), explícalo.
+        `;
+
+        const obsResponse = await openrouter.chat.completions.create({
+            messages: [{ role: "user", content: observationPrompt }],
+            model: "z-ai/glm-4.5-air:free"
+        });
+        
+        if (obsResponse.choices[0]?.message?.content) {
+          architectObservation = obsResponse.choices[0]?.message?.content;
+        }
+      }
+    } catch (e) {
+      console.error("Error generating architect observation:", e);
+    }
+
+    return NextResponse.json({ success: true, results, architectObservation });
 
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
