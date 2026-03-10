@@ -342,20 +342,34 @@ export default function MissionPanel({ activeNodeId = 'node-1' }: { activeNodeId
            <span className="text-[10px] font-mono text-slate-600">INPUT_BUFFER: {prompt.length} CHRS</span>
          </div>
          
-         {((mission as any).hint || currentLevel <= 3) && (
+         {fetchingMission ? (
+           <div className="mb-4 p-4 bg-slate-900/50 border border-slate-800 rounded-xl relative overflow-hidden flex flex-col gap-2">
+             <div className="flex flex-row items-center gap-2 opacity-50">
+               <Loader2 className="animate-spin text-cyan-500" size={14} />
+               <span className="text-cyan-500 font-bold uppercase tracking-widest text-[10px]">Descifrando Archivos Restringidos...</span>
+             </div>
+             <div className="h-4 bg-slate-800/50 rounded w-3/4 animate-pulse"></div>
+             <div className="h-4 bg-slate-800/50 rounded w-1/2 animate-pulse mt-1"></div>
+           </div>
+         ) : (
            <div className="mb-4 p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-xl relative overflow-hidden animate-in fade-in flex flex-col gap-2">
-             <div className="flex items-center gap-2">
-               <span className="text-cyan-400">💡</span>
-               <h3 className="text-cyan-400 font-bold uppercase tracking-widest text-[10px]">{(mission as any).hint ? 'Análisis del Arquitecto' : `Pista de Entrenamiento (${currentLevel}/3)`}</h3>
+             <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <span className="text-cyan-400">💡</span>
+                 <h3 className="text-cyan-400 font-bold uppercase tracking-widest text-[10px]">{(mission as any).hint ? 'Análisis del Arquitecto' : `Base de Entrenamientos`}</h3>
+               </div>
+               <span className="text-[9px] text-cyan-500/50 font-mono uppercase">Info_Táctica</span>
              </div>
              <p className="text-cyan-200/80 text-xs leading-relaxed">
-               {(mission as any).hint ? (
-                 (mission as any).hint
-               ) : (
-                 <>
-                   <strong>Sugerencia de formato:</strong> Usa siempre un System Prompt (instrucción de sistema) para dar un rol y reglas claras.<br/>
-                   <span className="text-cyan-500/60 mt-1 block">Ejemplo: <i>"Actúa como un filtro de seguridad. Si el usuario hace X, tú debes responder Y evitando Z."</i></span>
-                 </>
+               {(mission as any).hint || (
+                 currentLevel <= 3 ? (
+                   <>
+                     <strong>Sugerencia de formato:</strong> Usa siempre un System Prompt (instrucción de sistema) para dar un rol y reglas claras al modelo para que no se rebele ni divulgue secretos.<br/>
+                     <span className="text-cyan-500/60 mt-1 block">Ejemplo: <i>"Actúa como un filtro de seguridad. Si el usuario hace X, tú debes responder Y evitando Z."</i></span>
+                   </>
+                 ) : (
+                   <span className="italic text-cyan-500/60">No hay información de inteligencia extra disponible en este nivel de seguridad avanzado. Confía en lo aprendido.</span>
+                 )
                )}
              </p>
            </div>
